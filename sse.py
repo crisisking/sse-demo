@@ -39,6 +39,9 @@ class Client(Queue):
         self._closed = True
         for event in self.events:
             event.remove_listener(self)
+        message = json.dumps({'user': self.username, 'text': 'left the chat'})
+        for event in self.events:
+            event.send_event(message, msg_id=time.time())
         if clear_events:
             self.events.clear()
 
