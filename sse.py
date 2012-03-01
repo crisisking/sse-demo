@@ -68,16 +68,9 @@ class EventSource(object):
     '''An event generator. Broadcasts messages to
      all listening clients.'''
 
-    def __init__(self, event_generator=None, args=None, kwargs=None):
+    def __init__(self):
         self.listeners = set()
         self.history = collections.deque(maxlen=10)
-        event_generator = getattr(self, 'event_generator', event_generator)
-        if not event_generator:
-            raise Exception('event_generator must be provided somehow.')
-        self.event_generator = event_generator
-        self.args = args or []
-        self.kwargs = kwargs or {}
-
     def send_event(self, data, msg_id=None, event=None):
         '''Broadcasts an event to all listening clients.'''
         if event is None:
@@ -130,15 +123,3 @@ class EventSource(object):
         closed_listeners = [listener for listener in self.listeners
                             if listener.closed]
         self.remove_listeners(closed_listeners)
-
-    def run(self):
-        '''The main run-loop for this event generator.
-        The user is responsible for implementing an event
-        generator source, either by passing in a function to __init__,
-        or by extending this class.'''
-        event_generator = self.event_generator(*self.args, **self.kwargs)
-        while True:
-            event, data, msg_id = event_generator.next()
-            msg_id = msg_id or time.time()
-            self.send_event(data, event=event, msg_id=msg_id)
-            gevent.sleep()
