@@ -88,7 +88,7 @@ class EventSource(object):
             _id = msg_id
             msg_id = 'id:%s' % str(msg_id)
 
-        message = '\n'.join([event, data, msg_id, '\n'])
+        message = ('\n'.join([event, data, msg_id, '\n'])).lstrip('\n')
 
         closed = set()
         for listener in self.listeners:
