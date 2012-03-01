@@ -71,7 +71,8 @@ class EventSource(object):
     def __init__(self):
         self.listeners = set()
         self.history = collections.deque(maxlen=10)
-    def send_event(self, data, msg_id=None, event=None):
+
+    def send_event(self, data, msg_id=None, event=None, add_to_history=True):
         '''Broadcasts an event to all listening clients.'''
         if event is None:
             event = ''
@@ -97,7 +98,8 @@ class EventSource(object):
                 closed.add(listener)
 
         self.listeners = self.listeners.difference_update(closed)
-        self.history.add((_id, message))
+        if add_to_history:
+            self.history.append((_id, message))
 
     def register_listener(self, listener, last_event_id=None):
         '''Registers a client for event broadcasts.'''
