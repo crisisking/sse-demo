@@ -1,9 +1,10 @@
 '''Protocol implementation for HTTP server-sent events.'''
 
+import json
 import time
+
 import collections
 
-import gevent
 from gevent.queue import Queue
 
 
