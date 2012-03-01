@@ -96,8 +96,8 @@ class EventSource(object):
                 listener.put(message)
             except Closed:
                 closed.add(listener)
+        self.listeners.difference_update(closed)
 
-        self.listeners = self.listeners.difference_update(closed)
         if add_to_history:
             self.history.append((_id, message))
 
