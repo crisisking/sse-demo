@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf8">
+    <title>HAPPY FUN TIME CHAT</title>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        $(function() {
+            var username = prompt('Who are you?');
+            var display = $('#messages');
+            var chat_buffer = $('#messages tbody');
+            var backlog = $('#scrollback_container');
+            var user_list = $('#clients');
+            var user_count = $('#client_count');
+            display.width($(document).width() - 25);
+            $(window).on('resize', function() {
+                display.width($(document).width() - 25);
+            });
+            var sender = $('#message_sender');
+            var source = new EventSource('/events/?username=' + username);
+            source.addEventListener('message', function(e) {
+                var message = JSON.parse(e.data);
+                add_to_buffer(message.user, message.text);
+            });
+            
+            source.addEventListener('count', function(e) {
+                var message = JSON.parse(e.data);
+                if(message.user_count != 1) {
+                    user_count.text('There are ' + message.user_count + ' people online.');
+                } else {
+                    user_count.text('You are all alone.')
+                }
+                user_list.text('Jerks: ' + message.users.join(', '));
+            });
+
+            var add_to_buffer = function(user, text) {
+                var entry = $('<tr>');
+                var time = new Date();
+                entry.append('<td>' + time.toLocaleTimeString() + '</td>');
+                entry.append('<td>' + user + '</td>');
+                entry.append('<td>' + text + '</td>');
+                chat_buffer.append(entry);
+                backlog.animate({scrollTop: display.height()}, 200);
+            };
+
+            var handle_pings = function(e) {
+                var message = JSON.parse(e.data);
+                add_to_buffer(message.user, message.text);
+            };
+
+            $('#magic_fun').submit(function(e) {
+                e.preventDefault();
+                var outgoing = sender.val();
+                sender.val('');
+                $.post('/commands/', {user: username, msg:outgoing});
+            });
+
+            $('#show_pings').change(function() {
+                if($(this).is(':checked')) {
+                    source.addEventListener('ping', handle_pings);
+                } else {
+                    source.removeEventListener('ping', handle_pings);
+                }
+            });
+        });
+    </script>
+    <style type="text/css">
+        th { text-align: left; }
+        #scrollback_container { max-height: 400px; overflow: auto; border: 3px solid; margin: auto; }
+        #messages { margin: auto; }
+    </style>
+</head>
+<body>
+<div id="header">
+    <h1>HAPPY FUN TIME CHAT WITH FRIENDS</h1>
+    <form id="magic_fun">
+        <label for="message_sender">SAY SOMETHING:</label><input type="text" id="message_sender">
+    </form>
+    <label for="show_pings">Show server pings</label><input type="checkbox" id="show_pings">
+    <br><br>
+</div>
+<div id="scrollback_container">
+<table id="messages">
+    <thead><tr><th>Time</th><th>User</th><th>Message</th></tr></thead>
+    <tbody></tbody>
+</table>
+</div>
+<div>
+    <p id="client_count"></p>
+    <p id="clients"></p>
+</div>
+</body>
+</html>
