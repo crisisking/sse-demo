@@ -19,9 +19,10 @@ class Client(Queue):
     close on the iterable returned by a wsgi app
     to signal the end of a request.'''
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, username, *args, **kwargs):
         self._closed = False
         self.events = set()
+        self.username = username
         super(Client, self).__init__(*args, **kwargs)
 
     @property
