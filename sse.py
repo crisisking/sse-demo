@@ -83,7 +83,7 @@ class EventSource(object):
 
         if msg_id is None:
             msg_id = ''
-            _id = ''
+            _id = 0.0
         else:
             _id = msg_id
             msg_id = 'id:%s' % str(msg_id)
