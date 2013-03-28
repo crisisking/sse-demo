@@ -1,4 +1,4 @@
-'''Protocol implementation for HTTP server-sent events.'''
+"""Protocol implementation for HTTP server-sent events."""
 
 import json
 import time
@@ -9,15 +9,15 @@ from gevent.queue import Queue
 
 
 class Closed(Exception):
-    '''Exception raised when operations are attempted
-    on a closed client connection.'''
+    """Exception raised when operations are attempted
+    on a closed client connection."""
 
 
 class Client(Queue):
-    '''A closable gevent queue / client object.
+    """A closable gevent queue / client object.
     This adds a close method because gevent calls
     close on the iterable returned by a wsgi app
-    to signal the end of a request.'''
+    to signal the end of a request."""
 
     def __init__(self, username, *args, **kwargs):
         self._closed = False
@@ -27,12 +27,12 @@ class Client(Queue):
 
     @property
     def closed(self):
-        '''True if the client's connection is closed, false otherwise.'''
+        """True if the client's connection is closed, false otherwise."""
         return self._closed
 
     def close(self, clear_events=True):
-        '''Closes the client, preventing any further data from
-        being queued.'''
+        """Closes the client, preventing any further data from
+        being queued."""
         if self.closed:
             raise Closed('Connection is already closed.')
         self.put(StopIteration)
@@ -46,34 +46,34 @@ class Client(Queue):
             self.events.clear()
 
     def put(self, *args, **kwargs):
-        '''Puts data in the client's outgoing queue.
-        Raises a Closed exception if the client is closed.'''
+        """Puts data in the client's outgoing queue.
+        Raises a Closed exception if the client is closed."""
         if self.closed:
             raise Closed('Connection is closed.')
         super(Client, self).put(*args, **kwargs)
 
     def listen(self, event, last_event_id=None):
-        '''Tells an event source that this client
-        wants to listen to it.'''
+        """Tells an event source that this client
+        wants to listen to it."""
         self.events.add(event)
         event.register_listener(self, last_event_id)
 
     def forget(self, event):
-        '''Stop listening to an event source.'''
+        """Stop listening to an event source."""
         self.events.remove(event)
         event.remove_listener(self)
 
 
 class EventSource(object):
-    '''An event generator. Broadcasts messages to
-     all listening clients.'''
+    """An event generator. Broadcasts messages to
+     all listening clients."""
 
     def __init__(self):
         self.listeners = set()
         self.history = collections.deque(maxlen=10)
 
     def send_event(self, data, msg_id=None, event=None, add_to_history=True):
-        '''Broadcasts an event to all listening clients.'''
+        """Broadcasts an event to all listening clients."""
         if event is None:
             event = ''
         else:
@@ -102,7 +102,7 @@ class EventSource(object):
             self.history.append((_id, message))
 
     def register_listener(self, listener, last_event_id=None):
-        '''Registers a client for event broadcasts.'''
+        """Registers a client for event broadcasts."""
         if listener in self.listeners:
             return
         if last_event_id is not None:
@@ -113,15 +113,15 @@ class EventSource(object):
         self.listeners.add(listener)
 
     def remove_listeners(self, listeners):
-        '''Stop broadcasting events to the given clients.'''
+        """Stop broadcasting events to the given clients."""
         self.listeners.difference_update(listeners)
 
     def remove_listener(self, listener):
-        '''Stop broadcasting events to the given client.'''
+        """Stop broadcasting events to the given client."""
         self.listeners.remove(listener)
 
     def cleanup_closed_listeners(self):
-        '''Removes all closed clients from the known client list.'''
+        """Removes all closed clients from the known client list."""
         closed_listeners = [listener for listener in self.listeners
                             if listener.closed]
         self.remove_listeners(closed_listeners)
