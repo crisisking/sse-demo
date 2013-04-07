@@ -6,8 +6,8 @@ events and gevent. I would not recommend using this in any serious capacity.
 
 Requirements
 ------------
-[gevent](https://github.com/SiteSupport/gevent)
-Python 2.7
+* [gevent](https://github.com/surfly/gevent/)
+* Python 2.7
 
 License
 -------
